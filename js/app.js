@@ -371,7 +371,8 @@ function atualizarPlacar() {
 // 7A. ENTRADA E LOBBY
 // ---------------------------------------------------------------------------
 async function conectar() {
-  if (firebaseConfig && firebaseConfig.databaseURL) {
+  // window.GENIUS_MODO_LOCAL é usado só pelas capturas automáticas (não mexem no servidor real)
+  if (firebaseConfig && firebaseConfig.databaseURL && !window.GENIUS_MODO_LOCAL) {
     try {
       banco = await criarBancoFirebase(firebaseConfig);
     } catch (e) {
@@ -387,7 +388,7 @@ async function conectar() {
   el.seloModo.textContent = online ? '● Online' : '● Modo local';
   el.seloModo.className = 'selo-modo ' + (online ? 'online' : 'local');
   el.seloModo.title = online ? 'Conectado ao servidor: partidas entre aparelhos e ranking global' : 'Sem servidor configurado: o lobby funciona entre abas deste navegador';
-  if (!online && el.avisoModo.hidden) {
+  if (!online && el.avisoModo.hidden && !window.GENIUS_MODO_LOCAL) {
     el.avisoModo.hidden = false;
     el.avisoModo.innerHTML = '<strong>Modo local de teste:</strong> o servidor online ainda não foi configurado. Para testar o lobby, abra este site em <strong>outra aba</strong> com outro nome. Para jogar entre aparelhos, configure o Firebase (veja COMO_PUBLICAR.md).';
   }
