@@ -429,7 +429,11 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--acento)
   .btn-icone { padding: 0; }
   main { gap: 12px; }
   .logo-texto { font-size: 1.15rem; }
-  .selo-modo { display: none; }
+  .selo-modo, .marca-logo { display: none; }
+  .acoes-topo { gap: 6px; }
+  .botao { min-width: 54px; }      /* compensa a perspectiva: área de toque visível ≥ 48 px */
+  /* No celular a tampa inclina menos: continua 3D, mas os botões não ficam achatados */
+  .tampa { transform: perspective(calc(var(--cx) * 3.5)) rotateX(13deg); margin-top: calc(var(--cx) * -.03); }
   .marca { flex: 1 1 auto; }
   .placar { gap: 10px 8px; }
   .jogador { grid-template-columns: minmax(0, 1fr); grid-template-areas: "topo" "pontos" "vit" "aviso"; padding: 12px 10px 8px; text-align: center; }
