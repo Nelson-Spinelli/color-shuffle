@@ -327,38 +327,38 @@ body[data-estado="EXIBINDO"] .botao, body[data-estado="PASSANDO_VEZ"] .botao { c
 /* Girando: os botões não respondem (o toque na caixa inicia a partida) */
 .palco.girando .botao { pointer-events: none; }
 
-/* ---------- INICIAR: cilindro saindo do furo da lateral menor ---------- */
-.furo { position: absolute; width: calc(var(--ch) * .92); height: calc(var(--ch) * .92); border-radius: 50%; background: radial-gradient(circle, #050608 40%, #1d2026 72%); box-shadow: inset 0 0 calc(var(--cx) * .01) #000; }
-.btn-start {
-  position: relative; width: calc(var(--ch) * .8); height: calc(var(--ch) * .8); min-width: 44px; min-height: 44px;
-  border: 0; padding: 0; background: none; color: #fff; cursor: pointer;
-  transform-style: preserve-3d; transform: translateZ(0);
+/* ---------- INICIAR: botão do site, logo abaixo da caixa ---------- */
+.btn-iniciar {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  min-height: 60px; min-width: min(100%, 320px); padding: 0 34px; margin-top: -6px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  font: 800 1.15rem var(--fonte-titulo); letter-spacing: .08em; color: #fff;
+  background: linear-gradient(135deg, #ff5a5f, #e0245e 55%, #b3134f);
+  box-shadow: 0 6px 0 #7d0e35, 0 18px 40px rgb(224 36 94 / .45), inset 0 1px 0 rgb(255 255 255 / .35);
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform .12s, box-shadow .12s, filter .2s, background .3s;
 }
-.haste { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
-/* Para fora da parede é o eixo +Z local da face esquerda */
-.haste i { position: absolute; inset: 4%; border-radius: 50%; background: linear-gradient(90deg, #5e0b0b, #9a1717); }
-.haste i:nth-child(1) { transform: translateZ(calc(var(--cx) * .008)); }
-.haste i:nth-child(2) { transform: translateZ(calc(var(--cx) * .016)); }
-.haste i:nth-child(3) { transform: translateZ(calc(var(--cx) * .024)); }
-.haste i:nth-child(4) { transform: translateZ(calc(var(--cx) * .032)); }
-.start-cap {
-  position: absolute; inset: 0; border-radius: 50%; display: grid; place-items: center;
-  transform: translateZ(calc(var(--cx) * .04));
-  background:
-    radial-gradient(circle at 34% 28%, rgb(255 255 255 / .6) 0, rgb(255 255 255 / 0) 36%),
-    repeating-radial-gradient(circle at 50% 50%, rgb(255 255 255 / .08) 0 1px, rgb(0 0 0 / 0) 1px 4px),
-    radial-gradient(circle at 50% 50%, #ff7a7a 0, #e02a2a 55%, #8f1111 100%);
-  box-shadow: inset 0 0 0 calc(var(--cx) * .004) #6b0d0d, 0 0 calc(var(--cx) * .03) rgb(255 70 70 / .55);
-  transition: transform .1s ease-out, box-shadow .2s;
+.btn-iniciar::before { /* brilho que passa pelo botão */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / .35) 50%, transparent 70%);
+  background-size: 250% 100%; animation: reflexo 3.2s ease-in-out infinite;
 }
-.start-txt { rotate: -90deg; font: 900 max(9px, calc(var(--ch) * .13)) var(--fonte-titulo); letter-spacing: .06em; text-shadow: 0 1px 2px rgb(0 0 0 / .5); white-space: nowrap; }
-.btn-start:active .start-cap, .btn-start.apertado .start-cap { transform: translateZ(calc(var(--cx) * .018)); }
-body[data-estado="AGUARDANDO_START"] .start-cap, body[data-estado="GAME_OVER"] .start-cap { animation: chamar 1.8s ease-in-out infinite; }
-body[data-estado="VEZ_DO_JOGADOR"] .start-cap, body[data-estado="EXIBINDO"] .start-cap, body[data-estado="PASSANDO_VEZ"] .start-cap {
-  background: radial-gradient(circle at 34% 28%, rgb(255 255 255 / .5) 0, rgb(255 255 255 / 0) 36%), radial-gradient(circle at 50% 50%, #cbd5e1 0, #64748b 55%, #1e293b 100%);
-  box-shadow: inset 0 0 0 calc(var(--cx) * .004) #1e293b;
+.btn-iniciar:hover { filter: brightness(1.08); transform: translateY(-2px); }
+.btn-iniciar:active, .btn-iniciar.apertado { transform: translateY(4px); box-shadow: 0 2px 0 #7d0e35, 0 8px 18px rgb(224 36 94 / .4); }
+.start-ico { width: 26px; height: 26px; fill: currentColor; flex: none; }
+.start-ico .i-stop { display: none; }
+.btn-iniciar[data-estado="pronto"] { animation: chamar-web 2s ease-in-out infinite; }
+.btn-iniciar[data-estado="parar"] { background: linear-gradient(135deg, #64748b, #334155); box-shadow: 0 6px 0 #1e293b, 0 14px 30px rgb(0 0 0 / .35); }
+.btn-iniciar[data-estado="parar"] .i-play { display: none; }
+.btn-iniciar[data-estado="parar"] .i-stop { display: inline; }
+.btn-iniciar[data-estado="parar"]::before, .btn-iniciar[data-estado="esperando"]::before, .btn-iniciar[data-estado="jogando"]::before { display: none; }
+.btn-iniciar[data-estado="esperando"], .btn-iniciar[data-estado="jogando"] {
+  background: color-mix(in srgb, var(--superficie) 80%, transparent); color: var(--texto-2);
+  box-shadow: inset 0 0 0 2px var(--borda); cursor: default;
 }
+.btn-iniciar[data-estado="esperando"]:hover, .btn-iniciar[data-estado="jogando"]:hover { transform: none; filter: none; }
+@keyframes reflexo { 0%, 60% { background-position: 150% 0; } 100% { background-position: -100% 0; } }
+@keyframes chamar-web { 0%, 100% { box-shadow: 0 6px 0 #7d0e35, 0 18px 40px rgb(224 36 94 / .4), inset 0 1px 0 rgb(255 255 255 / .35); } 50% { box-shadow: 0 6px 0 #7d0e35, 0 18px 56px rgb(255 90 95 / .75), inset 0 1px 0 rgb(255 255 255 / .35); } }
 .dica-start {
   position: absolute; left: 50%; bottom: 0; translate: -50% 0; width: max-content; max-width: 100%;
   margin: 0; padding: 6px 14px; border-radius: 999px; font-size: .85rem; color: var(--texto-2); text-align: center;
@@ -516,8 +516,9 @@ input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--acento)
 /* Celular deitado (pouca altura): caixa à esquerda, placar e status à direita */
 @media (orientation: landscape) and (max-height: 560px) and (max-width: 1179px) {
   :root { --cx: min(calc(100vw - 440px), calc((100svh - 60px) / .9)); }
-  .area-jogo { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "palco placar" "palco status" "palco prog"; align-items: start; column-gap: 16px; }
+  .area-jogo { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "palco placar" "palco status" "palco ini" "palco prog"; align-items: start; column-gap: 16px; }
   .palco { grid-area: palco; }
+  .btn-iniciar { grid-area: ini; justify-self: center; margin-top: 4px; }
   .placar { grid-area: placar; grid-template-columns: 1fr 1fr; grid-template-areas: "j1 j2" "partida partida"; }
   .jogador { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "topo pontos" "vit pontos" "aviso aviso"; padding: 8px 10px; }
   .lado, .sub { display: none; }

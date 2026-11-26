@@ -13,8 +13,8 @@
  * As regras (sequência, turnos, pontos, vencedor) vêm do genius-core.js,
  * as mesmas do protótipo no Raspberry Pi e dos testes automatizados.
  * ========================================================================== */
-import { criarBancoLocal, criarBancoFirebase } from './banco.js';
-import { firebaseConfig } from './firebase-config.js';
+import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.1';
+import { firebaseConfig } from './firebase-config.js?v=2.1';
 
 const G = window.GeniusCore;
 const { ESTADOS } = G;
@@ -358,8 +358,15 @@ function atualizarPlacar() {
   const bloqueado = jogando || P.apresentando;
   el.corpo.dataset.estado = P.apresentando ? ESTADOS.EXIBINDO : jogando ? ESTADOS.VEZ_DO_JOGADOR : s.estado === 'fim' ? ESTADOS.GAME_OVER : ESTADOS.AGUARDANDO_START;
   el.rever.disabled = bloqueado || !P.ultimaSequencia.length;
-  el.start.querySelector('.start-txt').textContent = jogando && P.local ? 'PARAR' : 'INICIAR';
-  el.start.setAttribute('aria-label', jogando && P.local ? 'Parar a partida' : 'Iniciar partida');
+  // Botão INICIAR do site: o texto e a cor dizem o que ele faz agora
+  const completa = !!(s.jogadores && s.jogadores.j1 && s.jogadores.j2);
+  const [estadoBtn, textoBtn] = jogando
+    ? (P.local ? ['parar', 'PARAR'] : ['jogando', 'PARTIDA EM ANDAMENTO'])
+    : !completa ? ['esperando', 'AGUARDANDO ADVERSÁRIO']
+    : [s.estado === 'fim' ? 'pronto' : 'pronto', s.estado === 'fim' ? 'JOGAR DE NOVO' : 'INICIAR PARTIDA'];
+  el.start.dataset.estado = estadoBtn;
+  el.start.querySelector('.start-txt').textContent = textoBtn;
+  el.start.setAttribute('aria-label', textoBtn.charAt(0) + textoBtn.slice(1).toLowerCase());
   // progresso
   const total = (j.sequencia || []).length;
   let h = '';
@@ -513,7 +520,7 @@ function abrirPartida({ store, salaId, meu, local }) {
   el.log.innerHTML = '';
   limparMarcas(); apagarTudo();
   el.infoSala.innerHTML = local ? 'Partida no mesmo aparelho' : `Sala <b>${escapar(salaId)}</b> · passe o código para o adversário`;
-  el.dicaStart.textContent = local ? 'INICIAR: 1× começa ou para · 2× seguidas zeram o placar' : 'INICIAR começa a partida quando os 2 jogadores estiverem na sala';
+  el.dicaStart.textContent = local ? 'Toque na caixa ou em INICIAR · 2× seguidas zeram o placar' : 'Toque na caixa ou em INICIAR quando os 2 estiverem na sala';
   mostrarTela('jogo');
   log(local ? 'partida no mesmo aparelho' : `entrou na sala ${salaId} como jogador ${meu}`);
   P.parar = store.ouvir(`salas/${salaId}`, aoMudarSala);

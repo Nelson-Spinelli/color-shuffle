@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Rubik:wght@500..900&display=swap">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=2.1">
 </head>
 <body data-tela="entrada" data-estado="AGUARDANDO_START">
   <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -191,14 +191,7 @@
             <div class="face f-tras" aria-hidden="true"></div>
             <div class="face f-dir" aria-hidden="true"></div>
             <div class="face f-frente" aria-hidden="true"><span class="gravacao">COLOR · SHUFFLE</span></div>
-            <!-- Lateral menor esquerda: o furo e o botão INICIAR, como no modelo -->
-            <div class="face f-esq">
-              <span class="furo" aria-hidden="true"></span>
-              <button type="button" class="btn-start" id="btn-start" aria-label="Iniciar partida">
-                <span class="haste" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-                <span class="start-cap"><span class="start-txt">INICIAR</span></span>
-              </button>
-            </div>
+            <div class="face f-esq" aria-hidden="true"></div>
             <div class="face f-topo">
               <div class="tampa-painel">
                 <div class="fileira" id="fileira-fundo" role="group"></div>
@@ -217,6 +210,11 @@
           </div>
           <p class="dica-start" id="dica-start">INICIAR começa a partida quando os 2 jogadores estiverem na sala</p>
         </div>
+        <!-- Botão INICIAR: controle do site, fora do modelo -->
+        <button type="button" class="btn-iniciar" id="btn-start" data-estado="pronto">
+          <svg class="start-ico" viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z"/><rect class="i-stop" x="6" y="6" width="12" height="12" rx="2"/></svg>
+          <span class="start-txt">INICIAR PARTIDA</span>
+        </button>
         <div class="progresso" id="progresso" role="img" aria-label="Progresso: nenhuma sequência em jogo"></div>
       </div>
 
@@ -311,7 +309,7 @@
   <div class="sr-only" id="anuncio" aria-live="assertive" aria-atomic="true"></div>
   <noscript><p class="noscript">Este jogo precisa de JavaScript ativado no navegador.</p></noscript>
 
-  <script src="js/genius-core.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script src="js/genius-core.js?v=2.1"></script>
+  <script type="module" src="js/app.js?v=2.1"></script>
 </body>
 </html>
