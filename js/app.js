@@ -13,8 +13,8 @@
  * As regras (sequência, turnos, pontos, vencedor) vêm do genius-core.js,
  * as mesmas do protótipo no Raspberry Pi e dos testes automatizados.
  * ========================================================================== */
-import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.2';
-import { firebaseConfig } from './firebase-config.js?v=2.2';
+import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.3';
+import { firebaseConfig } from './firebase-config.js?v=2.3';
 
 const G = window.GeniusCore;
 const { ESTADOS } = G;
@@ -1057,9 +1057,11 @@ const Giro = {
         else if (this.vel > 0) this.vel = Math.max(0, this.vel - dt * 0.0001);
       }
     }
-    // Virada (fileira do fundo na frente): display e números giram para continuar legíveis
+    // Display e números são parte da caixa: giram junto com ela. Só quando a partida está
+    // rolando e a caixa vira para o jogador do fundo, o texto é "desvirado" para ficar de pé
+    // (troca instantânea, no momento em que a caixa passa de lado, sem animação própria).
     const ang = normal(this.rz);
-    el.caixa.classList.toggle('virada', ang > 90 && ang < 270);
+    el.caixa.classList.toggle('virada', !girar && ang > 90 && ang < 270);
     el.caixa.style.transform = `translateY(${this.bob.toFixed(2)}px) rotateX(${this.rx.toFixed(2)}deg) rotateZ(${this.rz.toFixed(2)}deg)`;
     requestAnimationFrame((n) => this.quadro(n));
   },

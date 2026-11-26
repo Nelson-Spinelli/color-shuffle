@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Rubik:wght@500..900&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=2.2">
+  <link rel="stylesheet" href="css/style.css?v=2.3">
 </head>
 <body data-tela="entrada" data-estado="AGUARDANDO_START">
   <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -182,6 +182,12 @@
 
         <p class="status" id="status" role="status" aria-live="polite">Aperte <strong>INICIAR</strong> para começar</p>
 
+        <!-- Botão INICIAR: controle do site, fora do modelo, sempre visível acima da caixa -->
+        <button type="button" class="btn-iniciar" id="btn-start" data-estado="pronto">
+          <svg class="start-ico" viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z"/><rect class="i-stop" x="6" y="6" width="12" height="12" rx="2"/></svg>
+          <span class="start-txt">INICIAR PARTIDA</span>
+        </button>
+
         <!-- A CAIXA EM 3D (réplica do modelo STL): 6 faces montadas com CSS 3D.
              Antes de começar ela gira devagar; ao apertar INICIAR ela se alinha e o jogo começa. -->
         <div class="palco" id="palco">
@@ -210,11 +216,6 @@
           </div>
           <p class="dica-start" id="dica-start">INICIAR começa a partida quando os 2 jogadores estiverem na sala</p>
         </div>
-        <!-- Botão INICIAR: controle do site, fora do modelo -->
-        <button type="button" class="btn-iniciar" id="btn-start" data-estado="pronto">
-          <svg class="start-ico" viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5v14l11-7z"/><rect class="i-stop" x="6" y="6" width="12" height="12" rx="2"/></svg>
-          <span class="start-txt">INICIAR PARTIDA</span>
-        </button>
         <div class="progresso" id="progresso" role="img" aria-label="Progresso: nenhuma sequência em jogo"></div>
       </div>
 
@@ -309,7 +310,7 @@
   <div class="sr-only" id="anuncio" aria-live="assertive" aria-atomic="true"></div>
   <noscript><p class="noscript">Este jogo precisa de JavaScript ativado no navegador.</p></noscript>
 
-  <script src="js/genius-core.js?v=2.2"></script>
-  <script type="module" src="js/app.js?v=2.2"></script>
+  <script src="js/genius-core.js?v=2.3"></script>
+  <script type="module" src="js/app.js?v=2.3"></script>
 </body>
 </html>
