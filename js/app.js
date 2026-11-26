@@ -13,8 +13,8 @@
  * As regras (sequência, turnos, pontos, vencedor) vêm do genius-core.js,
  * as mesmas do protótipo no Raspberry Pi e dos testes automatizados.
  * ========================================================================== */
-import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.3';
-import { firebaseConfig } from './firebase-config.js?v=2.3';
+import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.4';
+import { firebaseConfig } from './firebase-config.js?v=2.4';
 
 const G = window.GeniusCore;
 const { ESTADOS } = G;
@@ -294,10 +294,22 @@ function bolinhas(feito, total) {
 function oled(l1, l2, l3, seta = null) {
   const mudou = el.oled.l2.textContent !== l2;
   el.oled.l1.textContent = l1; el.oled.l2.textContent = l2; el.oled.l3.innerHTML = l3;
+  ajustarOled();
   const naFrente = seta && Number(el.fileiraFrente.dataset.jogador) === seta;
   el.oled.baixo.classList.toggle('on', !!seta && naFrente);
   el.oled.cima.classList.toggle('on', !!seta && !naFrente);
   if (mudou) animarClasse(el.oled.caixa, 'troca');
+}
+/** Cada linha do display que não couber diminui a fonte até caber (nada sai cortado). */
+function ajustarOled() {
+  for (const linha of [el.oled.l1, el.oled.l2, el.oled.l3]) {
+    linha.style.fontSize = '';
+    let tamanho = parseFloat(getComputedStyle(linha).fontSize);
+    for (let i = 0; i < 30 && linha.scrollWidth > linha.clientWidth + 1 && tamanho > 7; i++) {
+      tamanho -= 1;
+      linha.style.fontSize = `${tamanho}px`;
+    }
+  }
 }
 const nomeDe = (j) => (P.sala && P.sala.jogadores && P.sala.jogadores[k(j)] ? P.sala.jogadores[k(j)].nome : `Jogador ${j}`);
 const curto = (j) => nomeDe(j).slice(0, 10);
@@ -807,7 +819,8 @@ async function mostrarFim(sala, ev) {
     animarClasse(fileiraDe(perd), 'errou');
     botaoDe(perd, j.erro.esperado).classList.add('correta');
   }
-  oled(`✕ ${curto(perd)} errou`, P.meu ? (euVenci ? 'VITÓRIA!' : 'DERROTA') : `${curto(venc).toUpperCase()} VENCEU`, novoRecorde ? '★ novo recorde ★' : `placar ${sala.placar.j1 || 0} × ${sala.placar.j2 || 0}`, venc);
+  oled(`★ ${curto(venc)} venceu`, P.meu && !euVenci ? 'DERROTA' : 'VITÓRIA!',
+    novoRecorde ? '★ novo recorde ★' : `✕ ${curto(perd)} errou · ${sala.placar.j1 || 0} × ${sala.placar.j2 || 0}`, null);
   status(`✕ ${escapar(textoMotivo)} <strong>${escapar(nomeDe(venc))} venceu!</strong>`, 'erro');
   anunciar(`${nomeDe(venc)} venceu.`);
   atualizarPlacar();
