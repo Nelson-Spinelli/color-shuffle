@@ -13,8 +13,8 @@
  * As regras (sequência, turnos, pontos, vencedor) vêm do genius-core.js,
  * as mesmas do protótipo no Raspberry Pi e dos testes automatizados.
  * ========================================================================== */
-import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.1';
-import { firebaseConfig } from './firebase-config.js?v=2.1';
+import { criarBancoLocal, criarBancoFirebase } from './banco.js?v=2.2';
+import { firebaseConfig } from './firebase-config.js?v=2.2';
 
 const G = window.GeniusCore;
 const { ESTADOS } = G;
@@ -647,6 +647,7 @@ async function apresentarRodada(sala, ev) {
     status(`Boa, ${escapar(nomeDe(ev.jogador))}! <strong>+1 ponto</strong>. Agora é a vez de <strong>${escapar(nomeDe(j.vez))}</strong>`, 'ok');
     await esperar(450, t);
     await passarVez(j.vez, t);
+    await Giro.alinhar();            // a caixa vira de frente para quem vai jogar
   }
   const total = j.sequencia.length;
   const minha = !P.meu || P.meu === j.vez;
@@ -1000,14 +1001,22 @@ $('#ajuda-fechar').addEventListener('click', () => el.dlgAjuda.close());
 // ---------------------------------------------------------------------------
 // 8B. GIRO DA CAIXA 3D
 // Antes de começar a caixa gira devagar, balançando de leve. Quando a partida
-// começa (ou quando há algo para mostrar), ela desacelera e se alinha na pose
-// de jogo, sempre continuando no mesmo sentido do giro (movimento fluido).
+// começa ela desacelera e PARA DE FRENTE PARA QUEM VAI JOGAR: se a vez é de
+// quem está na fileira da frente, fica de frente (0°); se é da fileira do
+// fundo, dá meia-volta (180°) e a fileira dele vem para a frente.
 // ---------------------------------------------------------------------------
-const POSE_JOGO = { rx: 42, rz: -36 };
+const POSE_JOGO = { rx: 38 };
+/** Ângulo em que a caixa deve parar agora: de frente para o jogador da vez. */
+function anguloDaVez() {
+  const s = P.sala;
+  if (!s || s.estado !== 'jogando' || !s.jogo) return 0;
+  return s.jogo.vez === Number(el.fileiraFrente.dataset.jogador) ? 0 : 180;
+}
+const normal = (a) => ((a % 360) + 360) % 360;
 const Giro = {
-  rx: POSE_JOGO.rx, rz: POSE_JOGO.rz, bob: 0, vel: 0, ultimo: 0,
-  tween: null,            // alinhamento em andamento: { de, ate, rxDe, ini, dur }
-  esperando: [],          // promessas aguardando o fim do alinhamento
+  rx: POSE_JOGO.rx, rz: 0, bob: 0, vel: 0, ultimo: 0,
+  tween: null,            // movimento em andamento: { alvo, de, ate, rxDe, bobDe, ini, dur }
+  esperando: [],          // promessas aguardando a caixa parar alinhada
   deveGirar() {
     if (MOVIMENTO_REDUZIDO || el.corpo.dataset.tela !== 'jogo') return false;
     if (P.apresentando || el.dlgFim.open) return false;
@@ -1022,36 +1031,46 @@ const Giro = {
       this.tween = null;
       this.vel = Math.min(this.vel + dt * 0.00004, 0.024);          // acelera suave até ~24°/s
       this.rz += this.vel * dt;
-      const rxAlvo = 56 + Math.sin(t / 1400) * 5;                   // balanço leve
+      const rxAlvo = 54 + Math.sin(t / 1400) * 5;                   // balanço leve
       this.rx += (rxAlvo - this.rx) * Math.min(1, dt / 500);
       this.bob = Math.sin(t / 900) * 6;
-    } else if (!this.alinhada()) {
-      if (!this.tween) {
-        // segue no mesmo sentido até o próximo "ângulo de jogo" (pelo menos 90° à frente)
-        let falta = (((POSE_JOGO.rz - this.rz) % 360) + 360) % 360;
-        if (this.vel > 0.004 && falta < 90) falta += 360;
-        if (this.vel <= 0.004 && falta > 180) falta -= 360;          // parado: caminho mais curto
-        this.tween = { de: this.rz, ate: this.rz + falta, rxDe: this.rx, bobDe: this.bob, ini: t, dur: 700 + Math.abs(falta) * 1.4 };
-      }
-      const w = this.tween;
-      const k = Math.min(1, (t - w.ini) / w.dur);
-      const e = 1 - Math.pow(1 - k, 3);                                // desacelera no fim
-      this.rz = w.de + (w.ate - w.de) * e;
-      this.rx = w.rxDe + (POSE_JOGO.rx - w.rxDe) * e;
-      this.bob = w.bobDe * (1 - e);
-      this.vel = 0;
-      if (k >= 1) { this.rz = POSE_JOGO.rz; this.rx = POSE_JOGO.rx; this.bob = 0; this.tween = null; this.avisar(); }
     } else {
-      this.avisar();
+      const alvo = anguloDaVez();
+      if (this.alinhada(alvo)) {
+        this.rz = alvo; this.rx = POSE_JOGO.rx; this.bob = 0; this.tween = null; this.vel = 0;
+        this.avisar();
+      } else {
+        if (!this.tween || this.tween.alvo !== alvo) {
+          let falta = normal(alvo - this.rz);                         // quanto falta, no sentido do giro
+          if (this.vel > 0.004) { if (falta < 90) falta += 360; }     // vindo do giro: continua no mesmo sentido
+          else if (falta > 180) falta -= 360;                         // parada: caminho mais curto
+          this.tween = { alvo, de: this.rz, ate: this.rz + falta, rxDe: this.rx, bobDe: this.bob, ini: t, dur: 650 + Math.abs(falta) * 1.5 };
+        }
+        const w = this.tween;
+        const k = Math.min(1, (t - w.ini) / w.dur);
+        const e = k < 0.5 && this.vel === 0 && w.de !== w.ate && Math.abs(w.ate - w.de) <= 180
+          ? 4 * k * k * k : 1 - Math.pow(1 - k, 3);                    // meia-volta: acelera e freia; fim do giro: só freia
+        this.rz = w.de + (w.ate - w.de) * e;
+        this.rx = w.rxDe + (POSE_JOGO.rx - w.rxDe) * e;
+        this.bob = w.bobDe * (1 - e);
+        if (k >= 1) { this.rz = alvo; this.rx = POSE_JOGO.rx; this.bob = 0; this.tween = null; this.vel = 0; this.avisar(); }
+        else if (this.vel > 0) this.vel = Math.max(0, this.vel - dt * 0.0001);
+      }
     }
+    // Virada (fileira do fundo na frente): display e números giram para continuar legíveis
+    const ang = normal(this.rz);
+    el.caixa.classList.toggle('virada', ang > 90 && ang < 270);
     el.caixa.style.transform = `translateY(${this.bob.toFixed(2)}px) rotateX(${this.rx.toFixed(2)}deg) rotateZ(${this.rz.toFixed(2)}deg)`;
     requestAnimationFrame((n) => this.quadro(n));
   },
-  alinhada() { return !this.tween && Math.abs(this.rx - POSE_JOGO.rx) < 0.05 && Math.abs((((this.rz - POSE_JOGO.rz) % 360) + 360) % 360) < 0.05; },
+  alinhada(alvo = anguloDaVez()) {
+    const d = normal(this.rz - alvo);
+    return !this.tween && Math.abs(this.rx - POSE_JOGO.rx) < 0.05 && (d < 0.05 || d > 359.95);
+  },
   avisar() { if (this.esperando.length) this.esperando.splice(0).forEach((f) => f()); },
-  /** Resolve quando a caixa estiver alinhada na pose de jogo (no máximo ~2,6 s). */
+  /** Resolve quando a caixa estiver parada de frente para o jogador da vez (no máximo ~2,6 s). */
   alinhar() {
-    if (MOVIMENTO_REDUZIDO || this.alinhada()) return Promise.resolve();
+    if (this.alinhada()) return Promise.resolve();
     return new Promise((ok) => { this.esperando.push(ok); setTimeout(ok, 2600); });
   },
 };

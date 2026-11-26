@@ -219,7 +219,7 @@ body[data-tela="jogo"] #tela-jogo { display: grid; animation: surgir .3s ease-ou
   margin-left: calc(var(--cx) / -2); margin-top: calc(var(--cd) / -2);
   transform-style: preserve-3d;
   transform-origin: 50% 50% calc(var(--ch) / 2);
-  transform: rotateX(42deg) rotateZ(-36deg);   /* pose de jogo (o app.js anima a partir daqui) */
+  transform: rotateX(38deg) rotateZ(0deg);   /* pose de jogo (o app.js anima a partir daqui) */
   outline: none;
   will-change: transform;
 }
@@ -239,7 +239,8 @@ body[data-tela="jogo"] #tela-jogo { display: grid; animation: surgir .3s ease-ou
 /* Paredes: cada uma presa numa aresta da base e girada 90° */
 .f-frente, .f-tras { width: var(--cx); height: var(--ch); background: var(--mat-parede-frente); }
 .f-frente { transform: translateY(var(--cd)) translateZ(var(--ch)) rotateX(-90deg); display: grid; place-items: center; }
-.f-tras { transform: rotateX(90deg); background: var(--mat-parede-lado); }
+.f-tras { transform: rotateX(90deg); background: var(--mat-parede-frente); display: grid; place-items: center; }
+.f-tras .gravacao { rotate: 180deg; }
 .f-esq, .f-dir { width: var(--ch); height: var(--cd); background: var(--mat-parede-lado); }
 .f-esq { transform: rotateY(-90deg); transform-style: preserve-3d; display: grid; place-items: center; }
 .f-dir { transform: translateX(var(--cx)) translateZ(var(--ch)) rotateY(90deg); }
@@ -738,3 +739,9 @@ h1, h2, h3, .numero, .logo-texto, .btn, .segmentado span { font-family: var(--fo
   .tampa-painel { padding: calc(var(--cx) * .03) calc(var(--cx) * .025); }
   .oled { width: 56%; aspect-ratio: auto; padding: 4px 8px; }
 }
+
+/* Caixa virada para o jogador da fileira do fundo: o display e os números giram 180°
+   para continuar de pé para quem está jogando */
+.oled, .num { transition: rotate .35s ease; }
+.caixa3d.virada .oled { rotate: 180deg; }
+.caixa3d.virada .num { rotate: 180deg; }
