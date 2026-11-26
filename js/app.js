@@ -28,7 +28,7 @@ const CLIENTE = Math.random().toString(36).slice(2, 10);   // identifica ESTA ab
 const CHAVE_PREFS = 'colorShuffle.prefs';
 
 const prefs = (() => {
-  const padrao = { som: true, volume: 70, tema: null, nivel: 'facil', recorde: 0 };
+  const padrao = { som: true, volume: 70, visual: 'classico', nivel: 'facil', recorde: 0 };
   try { return { ...padrao, ...JSON.parse(localStorage.getItem(CHAVE_PREFS) || '{}') }; } catch (e) { return padrao; }
 })();
 function salvarPrefs() { try { localStorage.setItem(CHAVE_PREFS, JSON.stringify(prefs)); } catch (e) { /* modo privado */ } }
@@ -79,7 +79,7 @@ const el = {
   progresso: $('#progresso'), infoRodada: $('#info-rodada'), infoSeq: $('#info-seq'), infoRecorde: $('#info-recorde'),
   infoSala: $('#info-sala'), volume: $('#volume'), volumeValor: $('#volume-valor'), rever: $('#btn-rever'),
   som: $('#btn-som'), tema: $('#btn-tema'), ajuda: $('#btn-ajuda'), seloModo: $('#selo-modo'), avisoModo: $('#aviso-modo'),
-  log: $('#log'), confete: $('#confete'), dlgFim: $('#dlg-fim'), dlgAjuda: $('#dlg-ajuda'),
+  log: $('#log'), confete: $('#confete'), dlgFim: $('#dlg-fim'), dlgAjuda: $('#dlg-ajuda'), dlgVisual: $('#dlg-visual'), palco: $('#palco'), caixa: $('#tabuleiro'),
   listaSalas: $('#lista-salas'), contadorSalas: $('#contador-salas'), rankingCorpo: $('#ranking-corpo'), suaPosicao: $('#sua-posicao'),
 };
 const SIMBOLO = { verde: '▲', vermelho: '●', amarelo: '■', azul: '◆' };
@@ -244,7 +244,8 @@ function montarCaixa(frente) {
     const n = (jogador === 1 ? 1 : 5) + cores.indexOf(cor);
     const tecla = P.local ? tecla0 + cores.indexOf(cor) : 1 + cores.indexOf(cor);
     return `<button type="button" class="botao ${cor}" data-cor="${cor}" data-jogador="${jogador}" aria-label="B${n} ${cor} (${NOME_FORMA[cor]}), Jogador ${jogador}, tecla ${tecla}">`
-      + `<span class="aro"></span><span class="cap"><svg class="simbolo" viewBox="0 0 40 40" aria-hidden="true">${FORMA[cor]}</svg></span>`
+      + `<span class="brilho"></span><span class="aro"></span><span class="cil"><i></i><i></i><i></i><i></i></span>`
+      + `<span class="cap"><svg class="simbolo" viewBox="0 0 40 40" aria-hidden="true">${FORMA[cor]}</svg></span>`
       + `<span class="num" aria-hidden="true">B${n}</span></button>`;
   }).join('');
   const fundo = outro(frente);
@@ -629,6 +630,8 @@ async function apresentarRodada(sala, ev) {
   if (ev.tipo === 'inicio') {
     oled('placar zerado', 'COMEÇOU!', `${curto(1)} abre`, 1);
     status(`Preparem-se! <strong>${escapar(nomeDe(1))}</strong> abre a partida`);
+    await Giro.alinhar();            // a caixa termina o giro e se alinha na pose de jogo
+    await esperar(150, t);
     await animacaoInicio(t);
   } else {
     await esperar(260, t);
@@ -916,7 +919,7 @@ ligarBotao(el.start, apertarStart);
 const TECLAS = { 1: ['1', '2', '3', '4', 'q', 'w', 'e', 'r'], 2: ['5', '6', '7', '8', 'u', 'i', 'o', 'p'] };
 document.addEventListener('keydown', (e) => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
-  if (el.dlgFim.open || el.dlgAjuda.open) return;
+  if (el.dlgFim.open || el.dlgAjuda.open || el.dlgVisual.open) return;
   if (e.target.closest && e.target.closest('input, textarea')) return;       // digitando nome/código
   const emControle = e.target.closest && e.target.closest('button, summary, a');
   const tecla = e.key.toLowerCase();
@@ -945,17 +948,26 @@ function aplicarSom() {
   el.volumeValor.textContent = `${prefs.volume}%`;
 }
 function alternarSom() { prefs.som = !prefs.som; salvarPrefs(); aplicarSom(); if (prefs.som) Som.clique(); }
-const temaEfetivo = () => prefs.tema || (matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'escuro');
+/** Temas visuais: material da caixa, textura dos botões e fundo do site. */
+const VISUAIS = ['classico', 'neon', 'madeira', 'metal', 'papel'];
 function aplicarTema() {
-  if (prefs.tema) document.documentElement.dataset.tema = prefs.tema; else delete document.documentElement.dataset.tema;
+  const v = VISUAIS.includes(prefs.visual) ? prefs.visual : 'classico';
+  document.documentElement.dataset.visual = v;
+  document.documentElement.dataset.tema = v === 'papel' ? 'claro' : 'escuro';   // cores da interface
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = temaEfetivo() === 'claro' ? '#eef2f8' : '#0f1a2e';
+  if (meta) meta.content = v === 'papel' ? '#eef1f7' : '#0a1222';
+  $$('.visual-opcao').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.visual === v)));
 }
-function alternarTema() { prefs.tema = temaEfetivo() === 'claro' ? 'escuro' : 'claro'; salvarPrefs(); aplicarTema(); Som.clique(); }
+function escolherVisual(v) { prefs.visual = v; salvarPrefs(); aplicarTema(); Som.clique(); }
+/** Atalho T: passa para o próximo tema. */
+function alternarTema() { escolherVisual(VISUAIS[(VISUAIS.indexOf(prefs.visual) + 1) % VISUAIS.length]); }
+function abrirVisual() { Som.clique(); aplicarTema(); if (!el.dlgVisual.open) el.dlgVisual.showModal(); }
 function abrirAjuda() { Som.clique(); if (!el.dlgAjuda.open) el.dlgAjuda.showModal(); }
 
 el.som.addEventListener('click', alternarSom);
-el.tema.addEventListener('click', alternarTema);
+el.tema.addEventListener('click', abrirVisual);
+$$('.visual-opcao').forEach((b) => b.addEventListener('click', () => escolherVisual(b.dataset.visual)));
+$('#visual-fechar').addEventListener('click', () => el.dlgVisual.close());
 el.ajuda.addEventListener('click', abrirAjuda);
 el.volume.addEventListener('input', () => { prefs.volume = Number(el.volume.value); el.volumeValor.textContent = `${prefs.volume}%`; Som.volume(); });
 el.volume.addEventListener('change', () => { salvarPrefs(); Som.preparar(); Som.cor('vermelho', 180); });
@@ -976,7 +988,86 @@ $('#fim-jogar').addEventListener('click', () => { fecharDialogo(); apertarStart(
 $('#fim-rever').addEventListener('click', reverSequencia);
 $('#fim-lobby').addEventListener('click', () => { fecharDialogo(); sairDaSala(); });
 $('#ajuda-fechar').addEventListener('click', () => el.dlgAjuda.close());
-[el.dlgFim, el.dlgAjuda].forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+[el.dlgFim, el.dlgAjuda, el.dlgVisual].forEach((d) => d.addEventListener('click', (e) => { if (e.target === d) d.close(); }));
+
+// ---------------------------------------------------------------------------
+// 8B. GIRO DA CAIXA 3D
+// Antes de começar a caixa gira devagar, balançando de leve. Quando a partida
+// começa (ou quando há algo para mostrar), ela desacelera e se alinha na pose
+// de jogo, sempre continuando no mesmo sentido do giro (movimento fluido).
+// ---------------------------------------------------------------------------
+const POSE_JOGO = { rx: 42, rz: -36 };
+const Giro = {
+  rx: POSE_JOGO.rx, rz: POSE_JOGO.rz, bob: 0, vel: 0, ultimo: 0,
+  tween: null,            // alinhamento em andamento: { de, ate, rxDe, ini, dur }
+  esperando: [],          // promessas aguardando o fim do alinhamento
+  deveGirar() {
+    if (MOVIMENTO_REDUZIDO || el.corpo.dataset.tela !== 'jogo') return false;
+    if (P.apresentando || el.dlgFim.open) return false;
+    return !P.sala || P.sala.estado !== 'jogando';
+  },
+  quadro(t) {
+    const dt = this.ultimo ? Math.min(48, t - this.ultimo) : 16;
+    this.ultimo = t;
+    const girar = this.deveGirar();
+    el.palco.classList.toggle('girando', girar);
+    if (girar) {
+      this.tween = null;
+      this.vel = Math.min(this.vel + dt * 0.00004, 0.024);          // acelera suave até ~24°/s
+      this.rz += this.vel * dt;
+      const rxAlvo = 56 + Math.sin(t / 1400) * 5;                   // balanço leve
+      this.rx += (rxAlvo - this.rx) * Math.min(1, dt / 500);
+      this.bob = Math.sin(t / 900) * 6;
+    } else if (!this.alinhada()) {
+      if (!this.tween) {
+        // segue no mesmo sentido até o próximo "ângulo de jogo" (pelo menos 90° à frente)
+        let falta = (((POSE_JOGO.rz - this.rz) % 360) + 360) % 360;
+        if (this.vel > 0.004 && falta < 90) falta += 360;
+        if (this.vel <= 0.004 && falta > 180) falta -= 360;          // parado: caminho mais curto
+        this.tween = { de: this.rz, ate: this.rz + falta, rxDe: this.rx, bobDe: this.bob, ini: t, dur: 700 + Math.abs(falta) * 1.4 };
+      }
+      const w = this.tween;
+      const k = Math.min(1, (t - w.ini) / w.dur);
+      const e = 1 - Math.pow(1 - k, 3);                                // desacelera no fim
+      this.rz = w.de + (w.ate - w.de) * e;
+      this.rx = w.rxDe + (POSE_JOGO.rx - w.rxDe) * e;
+      this.bob = w.bobDe * (1 - e);
+      this.vel = 0;
+      if (k >= 1) { this.rz = POSE_JOGO.rz; this.rx = POSE_JOGO.rx; this.bob = 0; this.tween = null; this.avisar(); }
+    } else {
+      this.avisar();
+    }
+    el.caixa.style.transform = `translateY(${this.bob.toFixed(2)}px) rotateX(${this.rx.toFixed(2)}deg) rotateZ(${this.rz.toFixed(2)}deg)`;
+    requestAnimationFrame((n) => this.quadro(n));
+  },
+  alinhada() { return !this.tween && Math.abs(this.rx - POSE_JOGO.rx) < 0.05 && Math.abs((((this.rz - POSE_JOGO.rz) % 360) + 360) % 360) < 0.05; },
+  avisar() { if (this.esperando.length) this.esperando.splice(0).forEach((f) => f()); },
+  /** Resolve quando a caixa estiver alinhada na pose de jogo (no máximo ~2,6 s). */
+  alinhar() {
+    if (MOVIMENTO_REDUZIDO || this.alinhada()) return Promise.resolve();
+    return new Promise((ok) => { this.esperando.push(ok); setTimeout(ok, 2600); });
+  },
+};
+
+// Tocar na caixa girando = apertar INICIAR (fica fácil de começar no celular)
+el.palco.addEventListener('pointerdown', (e) => {
+  if (!el.palco.classList.contains('girando') || e.target.closest('#btn-start')) return;
+  e.preventDefault();
+  apertarStart();
+});
+
+/** Copia a caixa 3D para a tela de entrada, como enfeite girando. */
+function montarMiniCaixa() {
+  const copia = el.palco.cloneNode(true);
+  copia.removeAttribute('id');
+  copia.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+  copia.querySelectorAll('button').forEach((b) => { b.tabIndex = -1; b.setAttribute('aria-hidden', 'true'); });
+  copia.querySelector('.caixa3d').style.transform = '';
+  copia.querySelector('.oled-l2').textContent = 'SHUFFLE';
+  const alvo = $('#mini-palco');
+  alvo.innerHTML = '';
+  alvo.append(copia);
+}
 
 // ---------------------------------------------------------------------------
 // 9. INICIALIZAÇÃO
@@ -984,9 +1075,11 @@ $('#ajuda-fechar').addEventListener('click', () => el.dlgAjuda.close());
 aplicarSom();
 aplicarTema();
 montarCaixa(1);
+montarMiniCaixa();
+requestAnimationFrame((t) => Giro.quadro(t));
 await conectar();
 carregarIdentidade(banco.modo !== 'online');
 if (eu.nome) { $('#campo-nome').value = eu.nome; abrirLobby(); } else { mostrarTela('entrada'); $('#campo-nome').focus(); }
 
 // Exposto só para depuração e testes automatizados
-window.GeniusApp = { P, prefs, eu, entrar, criarSala, entrarSala, jogarLocal, apertarStart, pressionar, sairDaSala, abrirLobby, botaoDe };
+window.GeniusApp = { P, prefs, eu, Giro, escolherVisual, entrar, criarSala, entrarSala, jogarLocal, apertarStart, pressionar, sairDaSala, abrirLobby, botaoDe };

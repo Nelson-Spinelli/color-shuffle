@@ -1,0 +1,290 @@
+<!doctype html>
+<!-- =============================================================================
+     COLOR SHUFFLE — ESTRUTURA DA PÁGINA (index.html)
+     Três telas na mesma página (troca por data-tela no <body>):
+       1. ENTRADA: o jogador cadastra um nome;
+       2. LOBBY: criar partida, entrar em partida (lista ou código), ranking global;
+       3. JOGO: a caixa do protótipo em 3D (8 botões em 2 fileiras, INICIAR na
+          lateral menor e mini display), placar e configurações.
+     HTML5 semântico, rótulos ARIA e regiões aria-live para leitores de tela.
+     ========================================================================== -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>COLOR SHUFFLE</title>
+  <meta name="description" content="COLOR SHUFFLE: jogo da memória de cores para 2 jogadores, online, com lobby e ranking global. Funciona em computador, tablet e celular.">
+  <meta name="theme-color" content="#0f1a2e">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 44'%3E%3Crect x='1' y='1' width='62' height='42' rx='8' fill='%237c8189'/%3E%3Ccircle cx='12' cy='13' r='5' fill='%234fb3ff'/%3E%3Ccircle cx='25' cy='13' r='5' fill='%233dff85'/%3E%3Ccircle cx='39' cy='13' r='5' fill='%23ffe14a'/%3E%3Ccircle cx='52' cy='13' r='5' fill='%23ff4b55'/%3E%3Ccircle cx='12' cy='31' r='5' fill='%23ff4b55'/%3E%3Ccircle cx='25' cy='31' r='5' fill='%23ffe14a'/%3E%3Ccircle cx='39' cy='31' r='5' fill='%233dff85'/%3E%3Ccircle cx='52' cy='31' r='5' fill='%234fb3ff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-tela="entrada" data-estado="AGUARDANDO_START">
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- ===================== CABEÇALHO ===================== -->
+  <header class="topo">
+    <div class="marca">
+      <span class="marca-logo" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <h1 class="logo-texto"><span class="c1">C</span><span class="c2">O</span><span class="c3">L</span><span class="c4">O</span><span class="c1">R</span> <span class="shuffle">SHUFFLE</span></h1>
+    </div>
+    <nav class="acoes-topo" aria-label="Opções rápidas">
+      <span class="selo-modo" id="selo-modo" title="Tipo de conexão">…</span>
+      <button type="button" class="btn-icone" id="btn-som" aria-pressed="true" title="Som ligado (atalho M)">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path class="i-alto" d="M4 9v6h4l5 4V5L8 9H4z"/><path class="i-onda" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="i-mudo" d="M16 9l6 6M22 9l-6 6"/></svg>
+        <span class="rotulo-btn">Som</span>
+      </button>
+      <button type="button" class="btn-icone" id="btn-tema" title="Alternar tema claro/escuro (atalho T)">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+        <span class="rotulo-btn">Tema</span>
+      </button>
+      <button type="button" class="btn-icone" id="btn-ajuda" title="Regras e atalhos (atalho H)">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg>
+        <span class="rotulo-btn">Ajuda</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="conteudo">
+    <!-- ===================== TELA 1: ENTRADA (cadastro do nome) ===================== -->
+    <section class="tela tela-entrada" id="tela-entrada" aria-labelledby="titulo-entrada">
+      <div class="cartao-entrada">
+        <div class="mini-caixa" aria-hidden="true">
+          <i class="vermelho"></i><i class="amarelo"></i><i class="verde"></i><i class="azul"></i>
+          <i class="azul"></i><i class="verde"></i><i class="amarelo"></i><i class="vermelho"></i>
+        </div>
+        <h2 id="titulo-entrada">Bem-vindo ao COLOR SHUFFLE</h2>
+        <p class="texto-2">Memorize a sequência de cores e repita na sua vez. Quem errar primeiro perde!</p>
+        <form id="form-nome" class="form-nome" autocomplete="off">
+          <label for="campo-nome">Como você quer ser chamado?</label>
+          <div class="linha-form">
+            <input id="campo-nome" name="nome" type="text" maxlength="16" minlength="2" required placeholder="Seu nome ou apelido" autocapitalize="words" spellcheck="false">
+            <button type="submit" class="btn btn-primario">Entrar</button>
+          </div>
+          <p class="erro-form" id="erro-nome" role="alert"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== TELA 2: LOBBY ===================== -->
+    <section class="tela tela-lobby" id="tela-lobby" aria-labelledby="titulo-lobby">
+      <div class="lobby-topo">
+        <h2 id="titulo-lobby">Olá, <span id="lobby-nome">jogador</span>!</h2>
+        <button type="button" class="btn btn-secundario btn-pequeno" id="btn-trocar-nome">Trocar nome</button>
+      </div>
+      <p class="aviso-modo" id="aviso-modo" hidden></p>
+
+      <div class="lobby-grade">
+        <div class="lobby-col">
+          <!-- Criar partida -->
+          <section class="bloco" aria-labelledby="titulo-criar">
+            <h3 id="titulo-criar">Criar partida</h3>
+            <form id="form-criar" class="form-criar" autocomplete="off">
+              <label for="campo-sala">Nome da sala (opcional)</label>
+              <input id="campo-sala" type="text" maxlength="24" placeholder="Ex.: Sala do Nelson">
+              <fieldset class="grupo">
+                <legend>Velocidade</legend>
+                <div class="segmentado">
+                  <label><input type="radio" name="nivel" value="facil" checked><span>Fácil</span></label>
+                  <label><input type="radio" name="nivel" value="medio"><span>Médio</span></label>
+                  <label><input type="radio" name="nivel" value="dificil"><span>Difícil</span></label>
+                </div>
+              </fieldset>
+              <button type="submit" class="btn btn-primario btn-largo">＋ Criar partida online</button>
+            </form>
+          </section>
+
+          <!-- Entrar com código -->
+          <section class="bloco" aria-labelledby="titulo-codigo">
+            <h3 id="titulo-codigo">Entrar com código</h3>
+            <form id="form-codigo" class="linha-form" autocomplete="off">
+              <label class="sr-only" for="campo-codigo">Código da partida</label>
+              <input id="campo-codigo" type="text" maxlength="5" placeholder="ABCDE" autocapitalize="characters" spellcheck="false">
+              <button type="submit" class="btn">Entrar</button>
+            </form>
+            <p class="erro-form" id="erro-codigo" role="alert"></p>
+          </section>
+
+          <!-- Partidas abertas -->
+          <section class="bloco" aria-labelledby="titulo-salas">
+            <h3 id="titulo-salas">Partidas abertas <span class="contador" id="contador-salas">0</span></h3>
+            <ul class="lista-salas" id="lista-salas" aria-live="polite"></ul>
+          </section>
+
+          <section class="bloco bloco-local" aria-labelledby="titulo-local">
+            <h3 id="titulo-local">Jogar no mesmo aparelho</h3>
+            <p class="texto-2">Dois jogadores dividindo esta tela (J1 na fileira da frente, J2 na do fundo). Não conta para o ranking.</p>
+            <button type="button" class="btn btn-largo" id="btn-local">Jogar a dois aqui</button>
+          </section>
+        </div>
+
+        <!-- Ranking global -->
+        <section class="bloco bloco-ranking" aria-labelledby="titulo-ranking">
+          <h3 id="titulo-ranking">🏆 Ranking global <span class="texto-2 pequeno">top 10</span></h3>
+          <table class="ranking">
+            <thead><tr><th scope="col">#</th><th scope="col">Jogador</th><th scope="col" title="Vitórias">Vit.</th><th scope="col" title="Maior sequência alcançada">Rec.</th><th scope="col" title="Partidas jogadas">Part.</th></tr></thead>
+            <tbody id="ranking-corpo"><tr><td colspan="5" class="vazio">Carregando…</td></tr></tbody>
+          </table>
+          <p class="sua-posicao" id="sua-posicao"></p>
+          <p class="texto-2 pequeno">Ordem: vitórias, depois maior sequência, depois pontos.</p>
+        </section>
+      </div>
+    </section>
+
+    <!-- ===================== TELA 3: JOGO ===================== -->
+    <section class="tela tela-jogo" id="tela-jogo" aria-label="Partida">
+      <div class="barra-sala">
+        <button type="button" class="btn btn-secundario btn-pequeno" id="btn-sair">← Sair da sala</button>
+        <p class="info-sala" id="info-sala">Sala</p>
+      </div>
+
+      <div class="area-jogo">
+        <!-- PLACAR (J1 · partida · J2) -->
+        <section class="placar" aria-label="Placar">
+          <article class="jogador" id="cartao-j1" data-jogador="1">
+            <span class="badge-vez" aria-hidden="true">SUA VEZ</span>
+            <span class="badge-erro" aria-hidden="true">✕ ERROU</span>
+            <span class="badge-venceu" aria-hidden="true">★ VENCEU</span>
+            <header class="jogador-topo">
+              <span class="selo-j" aria-hidden="true">J1</span>
+              <div class="jogador-id">
+                <h2 class="nome-j" id="nome-1">Jogador 1</h2>
+                <p class="lado" id="lado-1">—</p>
+              </div>
+            </header>
+            <div class="pontos-j"><span class="rotulo">Pontos</span><output class="numero" id="pontos-1">0</output></div>
+            <p class="vitorias-j"><span>Vitórias na sala</span> <b id="vitorias-1">0</b></p>
+            <p class="aviso-j" aria-live="polite"></p>
+          </article>
+
+          <div class="partida" aria-label="Dados da partida">
+            <div class="dado"><span class="rotulo">Rodada</span><output class="numero" id="info-rodada">0</output></div>
+            <div class="dado"><span class="rotulo">Sequência</span><output class="numero" id="info-seq">0</output></div>
+            <div class="dado destaque"><span class="rotulo">★ Seu recorde</span><output class="numero" id="info-recorde">0</output></div>
+          </div>
+
+          <article class="jogador" id="cartao-j2" data-jogador="2">
+            <span class="badge-vez" aria-hidden="true">SUA VEZ</span>
+            <span class="badge-erro" aria-hidden="true">✕ ERROU</span>
+            <span class="badge-venceu" aria-hidden="true">★ VENCEU</span>
+            <header class="jogador-topo">
+              <span class="selo-j" aria-hidden="true">J2</span>
+              <div class="jogador-id">
+                <h2 class="nome-j" id="nome-2">Aguardando…</h2>
+                <p class="lado" id="lado-2">—</p>
+              </div>
+            </header>
+            <div class="pontos-j"><span class="rotulo">Pontos</span><output class="numero" id="pontos-2">0</output></div>
+            <p class="vitorias-j"><span>Vitórias na sala</span> <b id="vitorias-2">0</b></p>
+            <p class="aviso-j" aria-live="polite"></p>
+          </article>
+        </section>
+
+        <p class="status" id="status" role="status" aria-live="polite">Aperte <strong>INICIAR</strong> para começar</p>
+
+        <!-- A CAIXA (réplica do modelo 3D): fileiras montadas pelo app.js -->
+        <div class="cena">
+          <div class="caixa" id="tabuleiro" tabindex="-1">
+            <div class="iniciar-encaixe" aria-hidden="true"></div>
+            <button type="button" class="btn-start" id="btn-start"><span class="start-txt">INICIAR</span></button>
+            <div class="tampa">
+              <div class="tampa-painel">
+                <div class="fileira" id="fileira-fundo" role="group"></div>
+                <div class="miolo">
+                  <div class="oled" id="oled" aria-hidden="true">
+                    <span class="oled-l1" id="oled-l1"></span>
+                    <span class="oled-l2" id="oled-l2">SHUFFLE</span>
+                    <span class="oled-l3" id="oled-l3"></span>
+                    <span class="oled-seta c" id="oled-seta-c">▲</span>
+                    <span class="oled-seta b" id="oled-seta-b">▼</span>
+                  </div>
+                </div>
+                <div class="fileira" id="fileira-frente" role="group"></div>
+              </div>
+            </div>
+            <div class="frente" aria-hidden="true"><span class="gravacao">COLOR · SHUFFLE</span></div>
+            <div class="sombra-chao" aria-hidden="true"></div>
+          </div>
+        </div>
+        <p class="dica-start" id="dica-start">INICIAR começa a partida quando os 2 jogadores estiverem na sala</p>
+        <div class="progresso" id="progresso" role="img" aria-label="Progresso: nenhuma sequência em jogo"></div>
+      </div>
+
+      <aside class="lateral-jogo">
+        <section class="painel" aria-labelledby="titulo-config">
+          <h2 id="titulo-config" class="painel-titulo">Som</h2>
+          <div class="grupo">
+            <label class="legenda-falsa" for="volume">Volume <output id="volume-valor">70%</output></label>
+            <input type="range" id="volume" min="0" max="100" step="5" value="70">
+          </div>
+          <div class="linha-botoes">
+            <button type="button" class="btn" id="btn-rever" disabled>Rever última sequência</button>
+          </div>
+        </section>
+        <details class="registro">
+          <summary>Registro da partida</summary>
+          <ol id="log" class="log"></ol>
+        </details>
+      </aside>
+    </section>
+  </main>
+
+
+  <canvas id="confete" class="confete" aria-hidden="true"></canvas>
+
+  <!-- ===================== FIM DE JOGO ===================== -->
+  <dialog class="dialogo" id="dlg-fim" aria-labelledby="fim-titulo" aria-describedby="fim-texto">
+    <div class="dlg-corpo">
+      <p class="fim-selo" id="fim-selo">Fim de jogo</p>
+      <h2 id="fim-titulo">Vitória!</h2>
+      <p id="fim-texto"></p>
+      <p class="novo-recorde" id="fim-recorde" hidden>★ Novo recorde pessoal!</p>
+      <h3 class="fim-sub">Sequência da partida</h3>
+      <ol class="chips" id="fim-seq"></ol>
+      <dl class="fim-placar" id="fim-placar"></dl>
+      <div class="dlg-acoes">
+        <button type="button" class="btn btn-primario" id="fim-jogar" autofocus>Revanche</button>
+        <button type="button" class="btn" id="fim-rever">Rever sequência</button>
+        <button type="button" class="btn btn-secundario" id="fim-lobby">Voltar ao lobby</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===================== AJUDA ===================== -->
+  <dialog class="dialogo" id="dlg-ajuda" aria-labelledby="ajuda-titulo">
+    <div class="dlg-corpo">
+      <h2 id="ajuda-titulo">Como jogar COLOR SHUFFLE</h2>
+      <ol class="regras">
+        <li>Digite seu nome e, no lobby, <strong>crie uma partida</strong> (você recebe um código) ou <strong>entre</strong> numa partida aberta ou pelo código.</li>
+        <li>Com os 2 jogadores na sala, qualquer um aperta <strong>INICIAR</strong> (botão vermelho na lateral da caixa). O <strong>J1</strong> (quem criou) abre.</li>
+        <li>Observe: <strong>só os botões de quem vai jogar</strong> acendem a sequência, cada cor com seu som.</li>
+        <li>Na sua vez, repita a sequência inteira nos <strong>seus</strong> 4 botões (a sua fileira é sempre a da frente).</li>
+        <li>Acertou: <strong>+1 ponto</strong> e a vez passa ao adversário, com a mesma sequência <strong>+ 1 cor nova</strong>.</li>
+        <li>Errou: a partida acaba e o <strong>adversário vence</strong>. Sair no meio da partida conta como derrota.</li>
+      </ol>
+      <h3>Pontuação e ranking</h3>
+      <table class="atalhos"><tbody>
+        <tr><td>Pontos</td><td>+1 por sequência completa acertada na partida</td></tr>
+        <tr><td>Vitórias</td><td>+1 para quem vence (no placar da sala e no ranking global)</td></tr>
+        <tr><td>Recorde</td><td>maior sequência que você alcançou</td></tr>
+        <tr><td>Ranking</td><td>ordenado por vitórias, depois recorde, depois pontos</td></tr>
+      </tbody></table>
+      <h3>Atalhos de teclado</h3>
+      <table class="atalhos"><tbody>
+        <tr><td>Seus botões: vermelho, amarelo, verde, azul</td><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> ou <kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td></tr>
+        <tr><td>No mesmo aparelho, o J2 usa</td><td><kbd>5</kbd> <kbd>6</kbd> <kbd>7</kbd> <kbd>8</kbd> ou <kbd>U</kbd> <kbd>I</kbd> <kbd>O</kbd> <kbd>P</kbd></td></tr>
+        <tr><td>INICIAR</td><td><kbd>Espaço</kbd> ou <kbd>Enter</kbd></td></tr>
+        <tr><td>Rever sequência · Som · Tema · Ajuda</td><td><kbd>V</kbd> · <kbd>M</kbd> · <kbd>T</kbd> · <kbd>H</kbd></td></tr>
+      </tbody></table>
+      <h3>Acessibilidade</h3>
+      <p>Cada cor tem símbolo próprio (● vermelho, ■ amarelo, ▲ verde, ◆ azul) e número de botão. Não há limite de tempo para responder, e as mensagens são lidas por leitores de tela.</p>
+      <div class="dlg-acoes"><button type="button" class="btn btn-primario" id="ajuda-fechar">Entendi</button></div>
+    </div>
+  </dialog>
+
+  <div class="sr-only" id="anuncio" aria-live="assertive" aria-atomic="true"></div>
+  <noscript><p class="noscript">Este jogo precisa de JavaScript ativado no navegador.</p></noscript>
+
+  <script src="js/genius-core.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
